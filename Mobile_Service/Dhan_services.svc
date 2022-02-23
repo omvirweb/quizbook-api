@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="Mobile_Service.Dhan_services" CodeBehind="Dhan_services.svc.cs" %>
