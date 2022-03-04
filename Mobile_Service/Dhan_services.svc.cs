@@ -13,6 +13,7 @@ using System.ServiceModel.Activation;
 using System.Web;
 using System.Net;
 using System.IO;
+using System.Configuration;
 
 namespace Mobile_Service
 {
@@ -933,171 +934,372 @@ namespace Mobile_Service
         {
             bookschapter_response res = new bookschapter_response();
             try
-            {                
-                if (pera.lookfor == "Natraj")
+            {
+                //if (pera.lookfor == "Natraj")
+                //{
+                //    DataTable dt = objsh.GetDataTable(@"select Barcode,AgentCode from AgentCollectionMaster where Code=" + pera.code + " and Comp_Id=" + pera.cid);
+
+                //    if (dt != null && dt.Rows.Count > 0)
+                //    {
+                //        //Get Winner details
+                //        res.data_win = new List<data_win_bought>();
+                //        res.data_bought = new List<data_win_bought>();
+
+                //        for (int j = 0; j < dt.Rows.Count; j++)
+                //        {
+                //            if (!string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["Barcode"])) && !string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["AgentCode"])))
+                //            {
+                //                string _barcode = Convert.ToString(dt.Rows[j]["Barcode"]);
+                //                string _agentCode = Convert.ToString(dt.Rows[j]["AgentCode"]);
+
+                //                DataTable dtWin = objsh.GetDataTable(@"select wm.Win_Id,b.CompanyName as Company,wm.Ank,wm.Amount from WinnerMaster wm 
+                //                                                       join CompanyMaster b on wm.Comp_Id=b.Id where wm.Barcode='" + _barcode + "' and wm.AgentCode='" + _agentCode + "' and wm.IsPaid=0 ");
+
+                //                if (dtWin != null && dtWin.Rows.Count > 0)
+                //                {
+                //                    for (int i = 0; i < dtWin.Rows.Count; i++)
+                //                    {
+                //                        data_win_bought _data_win_bought = new data_win_bought();
+                //                        _data_win_bought.win_id = Convert.ToInt64(dtWin.Rows[i]["Win_Id"]);
+                //                        _data_win_bought.company = Convert.ToString(dtWin.Rows[i]["Company"]);
+                //                        _data_win_bought.ank = Convert.ToString(dtWin.Rows[i]["Ank"]);
+                //                        _data_win_bought.amount = Convert.ToDecimal(dtWin.Rows[i]["Amount"]);
+
+                //                        res.data_win.Add(_data_win_bought);
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
+
+                //                    DataTable dtBought = objsh.GetDataTable(@"select b.CompanyName as Company,ag.Ank,ag.Amount from AgentCollectionMaster ag 
+                //                                                              join CompanyMaster b on ag.Comp_Id=b.Id where Barcode='" + _barcode + "' and AgentCode='" + _agentCode + "' and CONVERT(date,Coll_Date)=" + currentDate.Date);
+
+                //                    if (dtBought != null && dtBought.Rows.Count > 0)
+                //                    {
+                //                        for (int i = 0; i < dtBought.Rows.Count; i++)
+                //                        {
+                //                            data_win_bought _data_win_bought = new data_win_bought();
+                //                            _data_win_bought.company = Convert.ToString(dtBought.Rows[i]["Company"]);
+                //                            _data_win_bought.ank = Convert.ToString(dtBought.Rows[i]["Ank"]);
+                //                            _data_win_bought.amount = Convert.ToDecimal(dtBought.Rows[i]["Amount"]);
+
+                //                            res.data_bought.Add(_data_win_bought);
+                //                        }
+                //                    }
+                //                }
+                //            }
+                //        }
+
+                //        if (res.data_bought.Count == 0 && res.data_win.Count == 0)
+                //        {
+                //            res.message = "No volume buy, No free amount";
+                //        }
+                //        else
+                //        {
+                //            res.message = "Success";
+                //        }
+
+                //        res.status = 1;
+                //        return res;
+                //    }
+                //    else
+                //    {
+                //        res.message = "No volume buy, No free amount";
+                //        res.status = 1;
+                //        return res;
+                //    }
+                //}
+                //else if (pera.lookfor == "Mantra")
+                //{
+
+                sqlhelperAlt objshAlt = new sqlhelperAlt();
+                DataTable dt = objshAlt.GetDataTable(@"select Barcode,AgentCode from AgentCollectionMaster where Code=" + pera.code + " and Comp_Id=" + pera.cid + " order by Coll_Date desc");
+
+                if (dt != null && dt.Rows.Count > 0)
                 {
-                    DataTable dt = objsh.GetDataTable(@"select Barcode,AgentCode from AgentCollectionMaster where Code=" + pera.code + " and Comp_Id=" + pera.cid);
+                    //Get Winner details
+                    res.data_win = new List<data_win_bought>();
+                    res.data_bought = new List<data_win_bought>();
 
-                    if (dt != null && dt.Rows.Count > 0)
+                    for (int j = 0; j < dt.Rows.Count; j++)
                     {
-                        //Get Winner details
-                        res.data_win = new List<data_win_bought>();
-                        res.data_bought = new List<data_win_bought>();
-
-                        for (int j = 0; j < dt.Rows.Count; j++)
+                        if (!string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["Barcode"])) && !string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["AgentCode"])))
                         {
-                            if (!string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["Barcode"])) && !string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["AgentCode"])))
+                            string _barcode = Convert.ToString(dt.Rows[j]["Barcode"]);
+                            string _agentCode = Convert.ToString(dt.Rows[j]["AgentCode"]);
+
+                            SqlParameter[] para = new SqlParameter[]
                             {
-                                string _barcode = Convert.ToString(dt.Rows[j]["Barcode"]);
-                                string _agentCode = Convert.ToString(dt.Rows[j]["AgentCode"]);
-                                
-                                DataTable dtWin = objsh.GetDataTable(@"select wm.Win_Id,b.CompanyName as Company,wm.Ank,wm.Amount from WinnerMaster wm 
-                                                                       join CompanyMaster b on wm.Comp_Id=b.Id where wm.Barcode='" + _barcode + "' and wm.AgentCode='" + _agentCode + "' and wm.IsPaid=0 ");
-
-                                if (dtWin != null && dtWin.Rows.Count > 0)
-                                {
-                                    for (int i = 0; i < dtWin.Rows.Count; i++)
-                                    {
-                                        data_win_bought _data_win_bought = new data_win_bought();
-                                        _data_win_bought.win_id = Convert.ToInt64(dtWin.Rows[i]["Win_Id"]);
-                                        _data_win_bought.company = Convert.ToString(dtWin.Rows[i]["Company"]);                                        
-                                        _data_win_bought.ank = Convert.ToString(dtWin.Rows[i]["Ank"]);
-                                        _data_win_bought.amount = Convert.ToDecimal(dtWin.Rows[i]["Amount"]);
-
-                                        res.data_win.Add(_data_win_bought);
-                                    }
-                                }
-                                else
-                                {
-                                    DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
-
-                                    DataTable dtBought = objsh.GetDataTable(@"select b.CompanyName as Company,ag.Ank,ag.Amount from AgentCollectionMaster ag 
-                                                                              join CompanyMaster b on ag.Comp_Id=b.Id where Barcode='" + _barcode + "' and AgentCode='" + _agentCode + "' and CONVERT(date,Coll_Date)=" + currentDate.Date);
-
-                                    if (dtBought != null && dtBought.Rows.Count > 0)
-                                    {
-                                        for (int i = 0; i < dtBought.Rows.Count; i++)
-                                        {
-                                            data_win_bought _data_win_bought = new data_win_bought();
-                                            _data_win_bought.company = Convert.ToString(dtBought.Rows[i]["Company"]);                                            
-                                            _data_win_bought.ank = Convert.ToString(dtBought.Rows[i]["Ank"]);
-                                            _data_win_bought.amount = Convert.ToDecimal(dtBought.Rows[i]["Amount"]);
-
-                                            res.data_bought.Add(_data_win_bought);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (res.data_bought.Count == 0 && res.data_win.Count == 0)
-                        {
-                            res.message = "No volume buy, No free amount";
-                        }
-                        else
-                        {
-                            res.message = "Success";
-                        }
-
-                        res.status = 1;
-                        return res;
-                    }
-                    else
-                    {
-                        res.message = "No volume buy, No free amount";
-                        res.status = 1;
-                        return res;
-                    }
-                }
-                else if (pera.lookfor == "Mantra")
-                {
-                    sqlhelperAlt objshAlt = new sqlhelperAlt();
-                    DataTable dt = objshAlt.GetDataTable(@"select Barcode,AgentCode from AgentCollectionMaster where Code=" + pera.code + " and Comp_Id=" + pera.cid);
-
-                    if (dt != null && dt.Rows.Count > 0)
-                    {
-                        //Get Winner details
-                        res.data_win = new List<data_win_bought>();
-                        res.data_bought = new List<data_win_bought>();
-
-                        for (int j = 0; j < dt.Rows.Count; j++)
-                        {
-                            if (!string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["Barcode"])) && !string.IsNullOrEmpty(Convert.ToString(dt.Rows[j]["AgentCode"])))
-                            {
-                                string _barcode = Convert.ToString(dt.Rows[j]["Barcode"]);
-                                string _agentCode = Convert.ToString(dt.Rows[j]["AgentCode"]);
-
-                                SqlParameter[] para = new SqlParameter[]
-                                {
                                 new SqlParameter("@barcode",_barcode),
                                 new SqlParameter("@agent",_agentCode)
-                                };
+                            };
 
-                                DataSet ds = objshAlt.GetDataTable(CommandType.StoredProcedure, "SPGetWinnerDetail", para);
-                                if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                            DataSet ds = objshAlt.GetDataTable(CommandType.StoredProcedure, "SPGetWinnerDetail", para);
+                            if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                            {
+                                for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
                                 {
-                                    for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+                                    data_win_bought _data_win_bought = new data_win_bought();
+                                    _data_win_bought.win_id = Convert.ToInt64(ds.Tables[0].Rows[i]["Win_Id"]);
+                                    _data_win_bought.company = Convert.ToString(ds.Tables[0].Rows[i]["Company"]);
+                                    _data_win_bought.session = Convert.ToString(ds.Tables[0].Rows[i]["J_Session"]);
+                                    _data_win_bought.ank = Convert.ToString(ds.Tables[0].Rows[i]["Ank"]);
+                                    _data_win_bought.amount = Convert.ToDecimal(ds.Tables[0].Rows[i]["Amount"]);
+
+                                    if (pera.cid == 22)
                                     {
-                                        data_win_bought _data_win_bought = new data_win_bought();
-                                        _data_win_bought.win_id = Convert.ToInt64(ds.Tables[0].Rows[i]["Win_Id"]);
-                                        _data_win_bought.company = Convert.ToString(ds.Tables[0].Rows[i]["Company"]);
-                                        _data_win_bought.session = Convert.ToString(ds.Tables[0].Rows[i]["J_Session"]);
-                                        _data_win_bought.ank = Convert.ToString(ds.Tables[0].Rows[i]["Ank"]);
-                                        _data_win_bought.amount = Convert.ToDecimal(ds.Tables[0].Rows[i]["Amount"]);
+                                        string _siteURL = ConfigurationManager.AppSettings["siteURL"].ToString();
 
-                                        res.data_win.Add(_data_win_bought);
+                                        if (pera.code == 123)
+                                        {
+                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3561_3_New-GR.pdf";
+                                        }
+                                        else if (pera.code == 369)
+                                        {
+                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3564_3_GR-01.pdf";
+                                        }
+                                        else if (pera.code == 789)
+                                        {
+                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3570_3_Doc_01.pdf";
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
 
-                                    DataTable dtBought = objshAlt.GetDataTable(@"select b.CompanyName as Company,(case when(ag.JackpotSession=1 and ag.JackpotTime=1) then 'Day_Open' 
+                                    res.data_win.Add(_data_win_bought);
+                                }
+                            }
+                            else
+                            {
+                                DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
+
+                                DataTable dtBought = objshAlt.GetDataTable(@"select b.CompanyName as Company,(case when(ag.JackpotSession=1 and ag.JackpotTime=1) then 'Day_Open' 
                                                                           when (ag.JackpotSession=1 and ag.JackpotTime=0) then 'Day_Close'
                                                                           when (ag.JackpotSession=0 and ag.JackpotTime=1) then 'Night_Open'
                                                                           when (ag.JackpotSession=0 and ag.JackpotTime=0) then 'Night_Close' end) as J_Session,ag.Ank,ag.Amount from AgentCollectionMaster ag 
-                                                                          join CompanyMaster b on ag.Comp_Id=b.Id where Barcode='" + _barcode + "' and AgentCode='" + _agentCode + "' and CONVERT(date,Coll_Date)=" + currentDate.Date);
+                                                                          join CompanyMaster b on ag.Comp_Id=b.Id where Barcode='" + _barcode + "' and AgentCode='" + _agentCode + "' and CONVERT(date,Coll_Date)='" + currentDate.Date.ToString("yyyy-MM-dd") + "'");
 
-                                    if (dtBought != null && dtBought.Rows.Count > 0)
+                                if (dtBought != null && dtBought.Rows.Count > 0)
+                                {
+                                    for (int i = 0; i < dtBought.Rows.Count; i++)
                                     {
-                                        for (int i = 0; i < dtBought.Rows.Count; i++)
-                                        {
-                                            data_win_bought _data_win_bought = new data_win_bought();
-                                            _data_win_bought.company = Convert.ToString(dtBought.Rows[i]["Company"]);
-                                            _data_win_bought.session = Convert.ToString(dtBought.Rows[i]["J_Session"]);
-                                            _data_win_bought.ank = Convert.ToString(dtBought.Rows[i]["Ank"]);
-                                            _data_win_bought.amount = Convert.ToDecimal(dtBought.Rows[i]["Amount"]);
+                                        data_win_bought _data_win_bought = new data_win_bought();
+                                        _data_win_bought.company = Convert.ToString(dtBought.Rows[i]["Company"]);
+                                        _data_win_bought.session = Convert.ToString(dtBought.Rows[i]["J_Session"]);
+                                        _data_win_bought.ank = Convert.ToString(dtBought.Rows[i]["Ank"]);
+                                        _data_win_bought.amount = Convert.ToDecimal(dtBought.Rows[i]["Amount"]);
 
-                                            res.data_bought.Add(_data_win_bought);
+                                        if (pera.cid == 22)
+                                        {
+                                            string _siteURL = ConfigurationManager.AppSettings["siteURL"].ToString();
+
+                                            if (pera.code == 123)
+                                            {
+                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3561_3_New-GR.pdf";
+                                            }
+                                            else if (pera.code == 369)
+                                            {
+                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3564_3_GR-01.pdf";
+                                            }
+                                            else if (pera.code == 789)
+                                            {
+                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3570_3_Doc_01.pdf";
+                                            }
                                         }
+
+                                        res.data_bought.Add(_data_win_bought);
                                     }
                                 }
                             }
                         }
+                    }
 
-                        if (res.data_bought.Count == 0 && res.data_win.Count == 0)
-                        {
-                            res.message = "No volume buy, No free amount";
-                        }
-                        else
-                        {
-                            res.message = "Success";
-                        }
+                    if (res.data_bought.Count == 0 && res.data_win.Count == 0)
+                    {
+                        res.message = "No volume buy, No free amount";
+                    }
+                    else
+                    {
+                        res.message = "Success";
+                    }
 
+                    res.status = 1;
+                    return res;
+                }
+                else
+                {
+                    res.message = "No volume buy, No free amount";
+                    res.status = 1;
+                    return res;
+                }
+                //}
+
+                //res.message = "No volume buy, No free amount";
+                //res.status = 1;
+                //return res;
+            }
+            catch (Exception ex)
+            {
+                res.message = ex.Message;
+                res.status = (int)responsestatuscode.failure;
+                return res;
+            }
+        }
+
+
+
+        //Static APIs
+
+        public cust_login_response cust_login(code_peram pera)
+        {
+            cust_login_response res = new cust_login_response();
+            try
+            {
+                if (pera.code == 1111 && pera.pin == 9898)
+                {
+                    res.lookingfor = "Natraj";
+                    res.balance = 1000;
+                    res.use_free = 200;
+                    res.current = 1200;
+                    res.code = pera.code;
+
+                    res.message = "Success";
+                    res.status = 1;
+                    return res;
+                }
+                else
+                {
+                    res.message = "Invalid code or pin, please check and enter again";
+                    res.status = 0;
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.message = ex.Message;
+                res.status = (int)responsestatuscode.failure;
+                return res;
+            }
+        }
+
+        public booking_response cust_booking(booking_peram[] peram)
+        {
+            booking_response res = new booking_response();
+            try
+            {
+                if (peram != null && peram.Count() > 0)
+                {
+                    if (peram[0].Code == 1111)
+                    {
+                        res.data = peram;
                         res.status = 1;
                         return res;
                     }
                     else
                     {
-                        res.message = "No volume buy, No free amount";
-                        res.status = 1;
+                        res.message = "Invalid either AgentCode or Code, please check and try again.";
+                        res.status = 0;
                         return res;
                     }
                 }
-
-                res.message = "No volume buy, No free amount";
-                res.status = 1;
+                else
+                {
+                    res.message = "Empty parameter";
+                    res.status = 0;
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.message = ex.Message;
+                res.status = (int)responsestatuscode.failure;
                 return res;
+            }
+        }
+
+        public ag_code_response ag_get_code_list(code_peram pera)
+        {
+            ag_code_response res = new ag_code_response();
+            try
+            {
+                DataTable dt = objsh.GetDataTable(@"select CodeId,Code,CodeMaster.Agent_Id,IsUsed,CodeMaster.Pin from CodeMaster
+                                                    inner join AgentMaster on AgentMaster.Agent_Id=CodeMaster.Agent_Id where AgentMaster.AgentCode='" + pera.agentcode + "' order by IsUsed ");
+
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    ag_codes[] cds = new ag_codes[dt.Rows.Count];
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        cds[i] = new ag_codes();
+                        cds[i].code = Convert.ToInt32(dt.Rows[i]["Code"]);
+                        cds[i].is_used = Convert.ToBoolean(dt.Rows[i]["IsUsed"]);
+                        cds[i].pin = Convert.ToInt32(dt.Rows[i]["Pin"]);
+                    }
+
+                    res.balance = 1000;
+                    res.client_pl = 500;
+                    res.current_bal = 900;
+
+                    res.data = cds;
+                    res.message = "Success";
+                    res.status = (int)responsestatuscode.success;
+                    return res;
+                }
+                else
+                {
+                    res.message = "No data found";
+                    res.status = (int)responsestatuscode.nodatafound;
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.message = ex.Message;
+                res.status = (int)responsestatuscode.failure;
+                return res;
+            }
+        }
+
+        public common_response cust_code_bal(cust_code_bal_peram pera)
+        {
+            common_response res = new common_response();
+            try
+            {
+                if (pera.code == 1111)
+                {
+                    if (pera.balance > 0)
+                    {
+                        if (pera.type.ToLower() == "add")
+                        {
+                            res.message = "Balance has been added successfully";
+                            res.status = 1;
+                            return res;
+                        }
+                        else if (pera.type.ToLower() == "subtract")
+                        {
+                            res.message = "Balance has been subtracted successfully";
+                            res.status = 1;
+                            return res;
+                        }
+                        else
+                        {
+                            res.message = "Invalid operation type, please check and enter again";
+                            res.status = 0;
+                            return res;
+                        }
+                    }
+                    else
+                    {
+                        res.message = "Balance must be greater than 0";
+                        res.status = 0;
+                        return res;
+                    }
+                }
+                else
+                {
+                    res.message = "Invalid code, please check and enter again";
+                    res.status = 0;
+                    return res;
+                }
             }
             catch (Exception ex)
             {

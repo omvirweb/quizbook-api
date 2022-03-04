@@ -60,5 +60,19 @@ namespace Mobile_Service
         [OperationContract]
         [WebInvoke(UriTemplate = "/book_chapter_list", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
         bookschapter_response book_chapter_list(code_peram pera);
+
+        [OperationContract]
+        [WebInvoke(UriTemplate = "/cust_login", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
+        cust_login_response cust_login(code_peram pera);
+        [OperationContract]
+        [WebInvoke(UriTemplate = "/cust_booking", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
+        booking_response cust_booking(booking_peram[] pera);
+        [OperationContract]
+        [WebInvoke(UriTemplate = "/ag_get_code_list", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
+        ag_code_response ag_get_code_list(code_peram pera);
+        [OperationContract]
+        [WebInvoke(UriTemplate = "/cust_code_bal", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
+        common_response cust_code_bal(cust_code_bal_peram pera);
+
     }
 }
