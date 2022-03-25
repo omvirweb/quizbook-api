@@ -1046,25 +1046,8 @@ namespace Mobile_Service
                                     _data_win_bought.session = Convert.ToString(ds.Tables[0].Rows[i]["J_Session"]);
                                     _data_win_bought.ank = Convert.ToString(ds.Tables[0].Rows[i]["Ank"]);
                                     _data_win_bought.amount = Convert.ToDecimal(ds.Tables[0].Rows[i]["Amount"]);
-
-                                    if (pera.cid == 22)
-                                    {
-                                        string _siteURL = ConfigurationManager.AppSettings["siteURL"].ToString();
-
-                                        if (pera.code == 123)
-                                        {
-                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3561_3_New-GR.pdf";
-                                        }
-                                        else if (pera.code == 369)
-                                        {
-                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3564_3_GR-01.pdf";
-                                        }
-                                        else if (pera.code == 789)
-                                        {
-                                            _data_win_bought.pdf_url = _siteURL + "/files/1_3570_3_Doc_01.pdf";
-                                        }
-                                    }
-
+                                    _data_win_bought.pdf_url = "http://13.235.19.65/pdfs/" + pera.cid + "/" + _data_win_bought.ank + ".pdf";
+                                                                        
                                     res.data_win.Add(_data_win_bought);
                                 }
                             }
@@ -1087,25 +1070,8 @@ namespace Mobile_Service
                                         _data_win_bought.session = Convert.ToString(dtBought.Rows[i]["J_Session"]);
                                         _data_win_bought.ank = Convert.ToString(dtBought.Rows[i]["Ank"]);
                                         _data_win_bought.amount = Convert.ToDecimal(dtBought.Rows[i]["Amount"]);
-
-                                        if (pera.cid == 22)
-                                        {
-                                            string _siteURL = ConfigurationManager.AppSettings["siteURL"].ToString();
-
-                                            if (pera.code == 123)
-                                            {
-                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3561_3_New-GR.pdf";
-                                            }
-                                            else if (pera.code == 369)
-                                            {
-                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3564_3_GR-01.pdf";
-                                            }
-                                            else if (pera.code == 789)
-                                            {
-                                                _data_win_bought.pdf_url = _siteURL + "/files/1_3570_3_Doc_01.pdf";
-                                            }
-                                        }
-
+                                        _data_win_bought.pdf_url = "http://13.235.19.65/pdfs/" + pera.cid + "/" + _data_win_bought.ank + ".pdf";
+                                                                                
                                         res.data_bought.Add(_data_win_bought);
                                     }
                                 }
@@ -1259,44 +1225,131 @@ namespace Mobile_Service
             }
         }
 
-        public common_response cust_code_bal(cust_code_bal_peram pera)
+        public common_response cust_manage_balance(cust_code_bal_peram pera)
         {
             common_response res = new common_response();
             try
             {
-                if (pera.code == 1111)
+                if (pera.code > 0 && !string.IsNullOrEmpty(pera.agentcode))
                 {
-                    if (pera.balance > 0)
+                    if (pera.type.ToLower() == "add")
                     {
-                        if (pera.type.ToLower() == "add")
+                        DataTable dt = objsh.GetDataTable(@"select AG.Agent_Id,AG.Balance from CodeMaster as CM inner join AgentMaster as AG on AG.Agent_Id=CM.Agent_Id where AG.AgentCode='" + pera.agentcode + "' and CM.Code=" + pera.code);
+
+                        if (dt != null && dt.Rows.Count > 0)
                         {
-                            res.message = "Balance has been added successfully";
-                            res.status = 1;
-                            return res;
-                        }
-                        else if (pera.type.ToLower() == "subtract")
-                        {
-                            res.message = "Balance has been subtracted successfully";
-                            res.status = 1;
-                            return res;
+                            decimal _Balance = Convert.ToDecimal(dt.Rows[0]["Balance"]);
+                            long _AgentId = Convert.ToInt64(dt.Rows[0]["Agent_Id"]);
+
+                            if (_Balance > pera.balance)
+                            {
+                                DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
+
+                                SqlParameter[] para = new SqlParameter[]
+                                {
+                                    new SqlParameter("@code",pera.code),
+                                    new SqlParameter("@Agent_Id", _AgentId),
+                                    new SqlParameter("@date", currentDate.ToString("yyyy-MM-dd HH:mm:ss")),
+                                    new SqlParameter("@agentcode", pera.agentcode),
+                                    new SqlParameter("@balance",pera.balance),
+                                    new SqlParameter("@TransactionType", "Add"),
+                                    new SqlParameter("@res",SqlDbType.Int)
+                                };
+
+                                para[6].Direction = ParameterDirection.Output;
+                                objsh.ExecuteNonQuery(CommandType.StoredProcedure, "SPManageCustomerBalance", para);
+                                int results = Convert.ToInt32(para[6].Value);
+                                if (results == 1)
+                                {
+                                    res.message = "Balance has been added successfully";
+                                    res.status = 1;
+                                    return res;
+                                }
+                                else
+                                {
+                                    res.message = "Something went wrong, please try after sometime";
+                                    res.status = 0;
+                                    return res;
+                                }
+                            }
+                            else
+                            {
+                                res.message = "Agent has insufficient balance, please enter less amount and try again";
+                                res.status = 0;
+                                return res;
+                            }
                         }
                         else
                         {
-                            res.message = "Invalid operation type, please check and enter again";
+                            res.message = "Invalid code or agentcode, please check and enter again";                            
+                            res.status = 0;
+                            return res;
+                        }
+                    }
+                    else if (pera.type.ToLower() == "subtract")
+                    {
+                        DataTable dt = objsh.GetDataTable(@"select AG.Agent_Id,CM.balance from CodeMaster as CM inner join AgentMaster as AG on AG.Agent_Id=CM.Agent_Id where AG.AgentCode='" + pera.agentcode + "' and CM.Code=" + pera.code);
+
+                        if (dt != null && dt.Rows.Count > 0)
+                        {
+                            decimal _Balance = Convert.ToDecimal(dt.Rows[0]["balance"]);
+                            long _AgentId = Convert.ToInt64(dt.Rows[0]["Agent_Id"]);
+
+                            if (_Balance > pera.balance)
+                            {
+                                DateTime currentDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "India Standard Time");
+
+                                SqlParameter[] para = new SqlParameter[]
+                                {
+                                    new SqlParameter("@code",pera.code),
+                                    new SqlParameter("@Agent_Id", _AgentId),
+                                    new SqlParameter("@date", currentDate.ToString("yyyy-MM-dd HH:mm:ss")),
+                                    new SqlParameter("@agentcode", pera.agentcode),
+                                    new SqlParameter("@balance",pera.balance),
+                                    new SqlParameter("@TransactionType", "Subtract"),
+                                    new SqlParameter("@res",SqlDbType.Int)
+                                };
+
+                                para[6].Direction = ParameterDirection.Output;
+                                objsh.ExecuteNonQuery(CommandType.StoredProcedure, "SPManageCustomerBalance", para);
+                                int results = Convert.ToInt32(para[6].Value);
+                                if (results == 1)
+                                {
+                                    res.message = "Balance has been subtracted successfully";
+                                    res.status = 1;
+                                    return res;
+                                }
+                                else
+                                {
+                                    res.message = "Something went wrong, please try after sometime";
+                                    res.status = 0;
+                                    return res;
+                                }
+                            }
+                            else
+                            {
+                                res.message = "Customer has insufficient balance, please enter less amount and try again";
+                                res.status = 0;
+                                return res;
+                            }
+                        }
+                        else
+                        {
+                            res.message = "Invalid code or agentcode, please check and enter again";
                             res.status = 0;
                             return res;
                         }
                     }
                     else
                     {
-                        res.message = "Balance must be greater than 0";
+                        res.message = "Invalid operation type, please check and enter again";
                         res.status = 0;
                         return res;
                     }
                 }
                 else
                 {
-                    res.message = "Invalid code, please check and enter again";
+                    res.message = "Code and Agentcode should not be empty";
                     res.status = 0;
                     return res;
                 }

@@ -71,8 +71,8 @@ namespace Mobile_Service
         [WebInvoke(UriTemplate = "/ag_get_code_list", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
         ag_code_response ag_get_code_list(code_peram pera);
         [OperationContract]
-        [WebInvoke(UriTemplate = "/cust_code_bal", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
-        common_response cust_code_bal(cust_code_bal_peram pera);
+        [WebInvoke(UriTemplate = "/cust_manage_balance", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json, Method = "POST")]
+        common_response cust_manage_balance(cust_code_bal_peram pera);
 
     }
 }

@@ -9,6 +9,9 @@ namespace Mobile_Service.get_peram
     public class cust_code_bal_peram
     {
         [DataMember]
+        public string agentcode { get; set; }
+
+        [DataMember]
         public int code { get; set; }
 
         [DataMember]
